@@ -1,10 +1,6 @@
 <?php
 
-/*  Database class - connect to mysql database
-	Include this class and use
-	$mysqlDatabase->RunQuery
-	to run mysql queries					
-*/
+/*  Database class - connect to mysql database	*/
 
 class Database {
 
@@ -52,7 +48,4 @@ class Database {
 		$this->mysqli->close();
 	}
 }
-
-/* connect to the database */
-$mysqlDatabase = new Database( "HOST", "USERNAME", "PASSWORD", "DATABASE" );
 ?>

@@ -1,0 +1,20 @@
+<?php
+
+require_once( "database.php" );
+require_once( "phpFlickr/phpFlickr.php" );
+require_once( "config.php");
+
+class Flickr
+{
+	public $phpFlickr;
+	public $Database;
+	
+	public function Flickr()
+	{
+		global $config;
+		
+		$this->phpFlickr = new phpFlickr( $config['api_key'] );
+		$this->Database = new Database( $config['dbHost'], $config['dbUsername'], $config['dbPassword'], $config['dbName'] );
+	}	
+}
+?>	
