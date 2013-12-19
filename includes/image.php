@@ -13,8 +13,6 @@ class Image
 	private $imageAvailable = false;
 	private $cache = array();
 	private $updateInfo = false;
-	private $flickrSizes = array("Large", "Medium_800", "Medium_640", "Medium", "Small_320", "Small", "Thumbnail", "Square", "Large_Square");
-	private $cropSizes = array("125x125","64x64","320x240");
 	
 	public function Image( $id, $downloadInfo = false, $updateInfo = false )
 	{
@@ -58,7 +56,7 @@ class Image
 			$this->views = 1;
 			
 			// cache photo
-			if( $this->cacheImage( $photo ) == true )
+			if( $this->cacheImage() == true )
 			{
 				// crop photo to custom dimensions
 				if( $this->Crop() == true )
@@ -75,8 +73,8 @@ class Image
 	{
 		global $config;
 		$cacheDir = $config['cacheDir'];
-		$sizes = $this->flickrSizes;
-		$cropSizes = $this->cropSizes;
+		$sizes = $config['flickrSizes'];
+		$cropSizes = $config['cropSizes'];
 		
 		//$sizes = array("Large", "Medium", "Small", "Thumbnail", "Square");
 		
@@ -99,7 +97,7 @@ class Image
 		
 	}
 	
-	private function cacheImage( $photo, $overwrite = false )
+	private function cacheImage( $overwrite = false )
 	{
 		$success = true;
 		
@@ -159,7 +157,7 @@ class Image
 	private function crop()
 	{
 		$success = true;
-		$sizes = $this->cropSizes;
+		$sizes = $this->Flickr->cropSizes;
 		
 		// sizes is stored as WxH
 		foreach( $sizes as $size )

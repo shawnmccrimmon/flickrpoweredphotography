@@ -8,7 +8,9 @@ $config = array(
 					"dbPassword" => "PASSWORD",
 					"dbName"	 =>	"DATABASE",
 					"api_key"	 => "API KEY",
-					"cacheDir"	 => "/full/path/to/cache"
+					"cacheDir"	 => "/full/path/to/cache",
+					"flickrSizes"=> array("Large", "Medium_800", "Medium_640", "Medium", "Small_320", "Small", "Thumbnail", "Square", "Large_Square"),
+					"cropSizes"	 => array("125x125","64x64","320x240")
 				);
 				
 ?>
