@@ -22,7 +22,7 @@ class Database {
 		}
 	}
 	
-	public function RunQuery( $mysqlQuery )
+	public function RunQuery( $mysqlQuery, $returnData = false )
 	{
 		$queryArray = array();
 		/* Only run query if we're connected */
@@ -31,9 +31,16 @@ class Database {
 			$mysqlQuery = mysql_real_escape_string( $mysqlQuery );
 			$queryReturn = $this->mysqli->query( $mysqlQuery );
 			
-			while ( $queryArray[] = $queryReturn->fetch_assoc() );
-			/* free result set */
-			$queryReturn->free();
+			if( $returnData == true )
+			{
+				while ( $queryArray[] = $queryReturn->fetch_assoc() );
+				/* free result set */
+				$queryReturn->free();
+			}
+			else
+			{
+				$queryArray = $queryReturn;
+			}
 			/* return all the results */
 			return $queryArray;
 		}

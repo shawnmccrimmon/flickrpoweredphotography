@@ -3,11 +3,12 @@
 // running this file does nothing
 // include("config.php");
 $config = array(
-					"dbHost" 	 =>	"HOST",
+					"dbHost" 	 =>	"localhost",
 					"dbUsername" =>	"USERNAME",
 					"dbPassword" => "PASSWORD",
 					"dbName"	 =>	"DATABASE",
-					"api_key"	 => "FLICKR API KEY",
+					"api_key"	 => "API KEY",
+					"cacheDir"	 => "/full/path/to/cache"
 				);
 				
 ?>
