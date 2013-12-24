@@ -145,14 +145,15 @@ class Gallery
 	private function imageListToArray( $imageList )
 	{
 		// remove current image array
-		$this->images = array();
+		$images = array();
 		
 		$imageArray = explode( ";", $imageList );
 		
 		foreach( $imageArray as $imageID )
 		{
-			$this->images[] = new Image( $imageID, true, $this->updateImages );
+			$images[] = new Image( $imageID, true, $this->updateImages );
 		}
+		return $images;
 	}
 		
 	public function getTitle()
