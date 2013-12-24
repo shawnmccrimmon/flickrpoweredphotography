@@ -31,6 +31,7 @@ class Gallery
 		}
 		
 		$this->updateInfo = $updateInfo;
+		$this->updateImages = $updateImages;
 		
 		// should we update the gallery infomation from flickr?
 		if ( 
@@ -65,7 +66,7 @@ class Gallery
 		return $this->processDataFromDatabase( $galleryData );
 	}
 	
-	public function getInfoFromTitle( $title = "")
+	public function getInfoFromTitle( $title = "" )
 	{
 		if( empty( $title ) == false )
 		{
@@ -90,11 +91,11 @@ class Gallery
 			)
 		{
 			$galleryData = $galleryData[0];
-			$this->exists = true;
 			$this->id = $galleryData['id'];
 			$this->description = $galleryData['description'];
 			$this->coverImage = $galleryData['cover'];
 			$this->images = $this->imageListToArray( $galleryData['images'] );
+			$processed = true;
 		}
 		
 		return $processed;
