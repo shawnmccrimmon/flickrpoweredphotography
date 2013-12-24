@@ -28,14 +28,27 @@ class Database {
 		/* Only run query if we're connected */
 		if( $this->connected == true )
 		{
-			$mysqlQuery = mysql_real_escape_string( $mysqlQuery );
+			//$mysqlQuery = $this->mysqli->real_escape_string( $mysqlQuery );
 			$queryReturn = $this->mysqli->query( $mysqlQuery );
+			$this->lastError = $this->mysqli->error;
 			
-			if( $returnData == true )
+			if ( 
+					$returnData == true 
+					&&
+					$queryReturn->num_rows > 0
+				)
 			{
 				while ( $queryArray[] = $queryReturn->fetch_assoc() );
 				/* free result set */
 				$queryReturn->free();
+			}
+			elseif( is_bool( $queryReturn ) == true )
+			{
+				$queryArray = $queryReturn;
+			}
+			elseif( $queryReturn->num_rows == 0 )
+			{
+				$queryArray = false;
 			}
 			else
 			{

@@ -39,8 +39,13 @@ class Image
 		
 		// get image info from database
 		$imageData = $this->Flickr->Database->RunQuery("select * from images where id='$this->id'", true);
-		if( empty( $imageData ) == false )
-		{
+		if	( 
+				empty( $imageData ) == false
+				&&
+				$imageData != false
+			)
+		{	
+			$imageData = $imageData[0];
 			$this->title = $imageData['title'];
 			$this->description = $imageData['description'];
 			$this->views = $imageData['views'];
