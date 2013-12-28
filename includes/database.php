@@ -35,6 +35,8 @@ class Database {
 			if ( 
 					$returnData == true 
 					&&
+					$queryReturn != false
+					&&
 					$queryReturn->num_rows > 0
 				)
 			{

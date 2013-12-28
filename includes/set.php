@@ -2,7 +2,16 @@
 
 include("image.php");
 
-class Gallery
+/*
+	Set object Arguments
+	1. the id of the set (defaults to empty string)
+	2. the title of the set, only used if id is blank (defaults to empty string)
+	3. whether or not the images in the set should be retreived. (defaults to true)
+	4. whether or not the set information should be updated from flickr (defaults to false)
+	5. whether or not the images in the set should be updated from flickr (defaults to false)	
+*/
+
+class Set
 {
 	private $id;
 	private $title;
@@ -11,12 +20,17 @@ class Gallery
 	private $imageCount = 0;
 	private $Flickr;
 	public $exists = false;
+	private $getImageArray = true;
 	private $updateInfo = false;
 	private $updateImages = false;
 	private $coverImage;
 	
-	public function Gallery( $id = "", $title = "", $updateInfo = false, $updateImages = false )
+	public function Set( $id = "", $title = "", $getImageArray = true, $updateInfo = false, $updateImages = false )
 	{
+	
+		$this->getImageArray = $getImageArray;
+		$this->updateInfo = $updateInfo;
+		$this->updateImages = $updateImages;
 		
 		// try to get data from database
 		if( empty( $id ) == false )
@@ -30,10 +44,7 @@ class Gallery
 			$this->exists = $this->getInfoFromTitle();
 		}
 		
-		$this->updateInfo = $updateInfo;
-		$this->updateImages = $updateImages;
-		
-		// should we update the gallery infomation from flickr?
+		// should we update the set infomation from flickr?
 		if ( 
 				$updateInfo == true 
 				&&
@@ -61,9 +72,9 @@ class Gallery
 		
 		$this->initializeFlickr();
 		
-		$galleryData = $this->Flickr->Database->RunQuery("select * from galleries where id='$this->id'", true);
+		$setData = $this->Flickr->Database->RunQuery("select * from sets where id='$this->id'", true);
 		
-		return $this->processDataFromDatabase( $galleryData );
+		return $this->processDataFromDatabase( $setData );
 	}
 	
 	public function getInfoFromTitle( $title = "" )
@@ -75,26 +86,26 @@ class Gallery
 		
 		$this->initializeFlickr();
 		
-		$galleryData = $this->Flickr->Database->RunQuery("select * from galleries where title LIKE '$this->id'", true);
+		$setData = $this->Flickr->Database->RunQuery("select * from sets where title LIKE '$this->id'", true);
 		
-		return $this->processDataFromDatabase( $galleryData );
+		return $this->processDataFromDatabase( $setData );
 	}
 	
-	private function processDataFromDatabase( $galleryData )
+	private function processDataFromDatabase( $setData )
 	{
 		$processed = false;
 
 		if ( 
-				empty( $galleryData ) == false
+				empty( $setData ) == false
 				&&
-				$galleryData != false
+				$setData != false
 			)
 		{
-			$galleryData = $galleryData[0];
-			$this->id = $galleryData['id'];
-			$this->description = $galleryData['description'];
-			$this->coverImage = $galleryData['cover'];
-			$this->images = $this->imageListToArray( $galleryData['images'] );
+			$setData = $setData[0];
+			$this->id = $setData['id'];
+			$this->description = $setData['description'];
+			$this->coverImage = $setData['cover'];
+			$this->images = $this->imageListToArray( $setData['images'] );
 			$processed = true;
 		}
 		
@@ -131,28 +142,31 @@ class Gallery
 			// add values to database
 			if( $this->exists == false )
 			{
-				$this->Flickr->Database->RunQuery("insert into galleries values( '$this->id', '$this->title', '$this->description', '$coverImage', '$ID_List')");
+				$this->Flickr->Database->RunQuery("insert into sets values( '$this->id', '$this->title', '$this->description', '$coverImage', '$ID_List')");
 			}
 			else
 			{
-				$this->Flickr->Database->RunQuery("update galleries set title='$this->title',description='$this->description',cover='$coverImage',images='$ID_List' where id='$this->id'");
+				$this->Flickr->Database->RunQuery("update sets set title='$this->title',description='$this->description',cover='$coverImage',images='$ID_List' where id='$this->id'");
 			}
 			
-			$this->imageListToArray( $ID_List );
+			$this->images = $this->imageListToArray( $ID_List );
 		}
 	}
 	
 	private function imageListToArray( $imageList )
 	{
-		// remove current image array
 		$images = array();
 		
-		$imageArray = explode( ";", $imageList );
-		
-		foreach( $imageArray as $imageID )
-		{
-			$images[] = new Image( $imageID, true, $this->updateImages );
+		if( $this->getImageArray == true )
+		{			
+			$imageArray = explode( ";", $imageList );
+			
+			foreach( $imageArray as $imageID )
+			{
+				$images[] = new Image( $imageID, true, $this->updateImages );
+			}
 		}
+
 		return $images;
 	}
 		
