@@ -1,6 +1,6 @@
 <?php
 
-include("image.php");
+require_once("image.php");
 
 /*
 	Set object Arguments
@@ -31,6 +31,7 @@ class Set
 		$this->getImageArray = $getImageArray;
 		$this->updateInfo = $updateInfo;
 		$this->updateImages = $updateImages;
+		$this->Flickr = new Flickr();
 		
 		// try to get data from database
 		if( empty( $id ) == false )
@@ -55,26 +56,22 @@ class Set
 		}
 	}
 	
-	private function initializeFlickr()
-	{
-		if( isset( $Flickr ) == false )
-		{
-			$this->Flickr = new Flickr();
-		}
-	}
-	
 	public function getInfoFromID( $id = "" )
 	{
 		if( empty( $id ) == false )
 		{
 			$this->id = $id;
 		}
-		
-		$this->initializeFlickr();
+		// Make sure we have a database connection
+		$this->Flickr->initializeDatabase();
 		
 		$setData = $this->Flickr->Database->RunQuery("select * from sets where id='$this->id'", true);
+		$exists = $this->processDataFromDatabase( $setData );
 		
-		return $this->processDataFromDatabase( $setData );
+		// close database connection
+		$this->Flickr->closeDatabase();
+		
+		return $exists;
 	}
 	
 	public function getInfoFromTitle( $title = "" )
@@ -87,8 +84,12 @@ class Set
 		$this->initializeFlickr();
 		
 		$setData = $this->Flickr->Database->RunQuery("select * from sets where title LIKE '$this->id'", true);
+		$exists = $this->processDataFromDatabase( $setData );
 		
-		return $this->processDataFromDatabase( $setData );
+		// close database connection
+		$this->Flickr->closeDatabase();
+		
+		return $exists;
 	}
 	
 	private function processDataFromDatabase( $setData )
@@ -103,6 +104,7 @@ class Set
 		{
 			$setData = $setData[0];
 			$this->id = $setData['id'];
+			$this->title = $setData['title'];
 			$this->description = $setData['description'];
 			$this->coverImage = $setData['cover'];
 			$this->images = $this->imageListToArray( $setData['images'] );
@@ -114,6 +116,9 @@ class Set
 	
 	private function getInfoFromFlickr()
 	{
+		// make sure we have a phpFlickr object
+		$this->Flickr->initializeFlickr();
+
 		// get set information
 		$setInfo = $this->Flickr->phpFlickr->photosets_getInfo( $this->id );
 		$this->title = $setInfo['title'];
@@ -139,6 +144,9 @@ class Set
 				$ID_List .= $image['id'];
 			}
 			
+			// Make sure we have a database connection
+			$this->Flickr->initializeDatabase(); 
+			
 			// add values to database
 			if( $this->exists == false )
 			{
@@ -150,6 +158,9 @@ class Set
 			}
 			
 			$this->images = $this->imageListToArray( $ID_List );
+			
+			// close database connection
+			$this->Flickr->closeDatabase();
 		}
 	}
 	

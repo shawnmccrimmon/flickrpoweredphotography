@@ -58,5 +58,15 @@ class Flickr
 			$this->databaseInitialized = true;
 		}
 	}
+	
+	public function closeDatabase()
+	{
+		// close connection
+		$this->Database->Close();
+		// delete object
+		unset($this->Database);
+		// database is no longer initialized.
+		$this->databaseInitialized = false;
+	}
 }
 ?>	

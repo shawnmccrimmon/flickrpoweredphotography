@@ -1,6 +1,6 @@
 <?php
 
-require("set.php");
+require_once("set.php");
 
 /*
 	Collection object Arguments
@@ -34,7 +34,7 @@ class Collection
 		$this->getSubCollectionArray = $getSubCollectionArray;
 		$this->updateInfo = $updateInfo;
 		$this->updateImages = $updateImages;
-		
+		$this->Flickr = new Flickr();
 		
 		// try to get data from database
 		if( empty( $id ) == false )
@@ -59,14 +59,6 @@ class Collection
 		}
 	}
 	
-	private function initializeFlickr()
-	{
-		if( isset( $Flickr ) == false )
-		{
-			$this->Flickr = new Flickr();
-		}
-	}
-	
 	public function getInfoFromID( $id = "" )
 	{
 		if( empty( $id ) == false )
@@ -74,11 +66,16 @@ class Collection
 			$this->id = $id;
 		}
 		
-		$this->initializeFlickr();
+		// Make sure we have a database connection
+		$this->Flickr->initializeDatabase();
 		
 		$collectionData = $this->Flickr->Database->RunQuery("select * from collections where id='$this->id'", true);
+		$exists = $this->processDataFromDatabase( $collectionData );
 		
-		return $this->processDataFromDatabase( $collectionData );
+		// close database connection
+		$this->Flickr->closeDatabase();
+		
+		return $exists;
 	}
 	
 	public function getInfoFromTitle( $title = "" )
@@ -88,11 +85,16 @@ class Collection
 			$this->title = $title;
 		}
 		
-		$this->initializeFlickr();
+		// Make sure we have a database connection
+		$this->Flickr->initializeDatabase();
 		
 		$collectionData = $this->Flickr->Database->RunQuery("select * from collections where title LIKE '$this->id'", true);
+		$exists = $this->processDataFromDatabase( $collectionData );
 		
-		return $this->processDataFromDatabase( $collectionData );
+		// close database connection
+		$this->Flickr->closeDatabase();
+		
+		return $exists;
 	}
 	
 	private function processDataFromDatabase( $collectionData )
@@ -107,6 +109,7 @@ class Collection
 		{
 			$collectionData = $collectionData[0];
 			$this->id = $collectionData['id'];
+			$this->title = $collectionData['title'];
 			$this->description = $collectionData['description'];
 			$this->type = $collectionData['type'];
 			$this->collections = $this->collectionListToArray( $collectionData['collections'] );
@@ -118,11 +121,13 @@ class Collection
 	
 	private function getInfoFromFlickr()
 	{
+		// make sure we have a phpFlickr object
+		$this->Flickr->initializeFlickr();
+			
 		// get collection information
 		$collectionInfo = $this->Flickr->phpFlickr->collections_getTree( $this->id, $this->Flickr->userID );
 		
 		$collectionInfo = $collectionInfo['collections']['collection'][0];
-		//$this->id = $collectionInfo['id'];
 		$this->title = $collectionInfo['title'];
 		$this->description = $collectionInfo['description'];
 		$this->coverImage = $collectionInfo['iconlarge'];
@@ -157,6 +162,8 @@ class Collection
 			}
 		}
 		
+		// Make sure we have a database connection
+		$this->Flickr->initializeDatabase(); 
 			
 		// add values to database
 		if( $this->exists == false )
@@ -169,6 +176,9 @@ class Collection
 		}
 		
 		$this->collections = $this->collectionListToArray( $ID_List );
+		
+		// close database connection
+		$this->Flickr->closeDatabase();
 	}
 	
 	private function collectionListToArray( $collectionList )

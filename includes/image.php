@@ -18,6 +18,8 @@ class Image
 	{
 		$this->id = $id;
 		$this->updateInfo = $updateInfo;
+		$this->Flickr = new Flickr();
+		
 		if( $downloadInfo == true )
 		{
 			$this->downloadInfo();
@@ -25,18 +27,10 @@ class Image
 		$this->buildCache();
 	}
 	
-	private function initializeFlickr()
-	{
-		if( isset( $Flickr ) == false )
-		{
-			$this->Flickr = new Flickr();
-		}
-	}
-	
 	public function downloadInfo()
 	{
-		$this->initializeFlickr();
-		
+		// Connect to database
+		$this->Flickr->initializeDatabase();
 		// get image info from database
 		$imageData = $this->Flickr->Database->RunQuery("select * from images where id='$this->id'", true);
 		if	( 
@@ -53,6 +47,8 @@ class Image
 		}
 		elseif( $this->updateInfo == true )
 		{
+			// make sure we have a phpFlickr object
+			$this->Flickr->initializeFlickr();
 			// image is not in cache, download image info from flickr
 			$photo = $this->Flickr->phpFlickr->photos_getInfo( $this->id );
 			$photo = $photo['photo'];
@@ -72,16 +68,15 @@ class Image
 				}	
 			}
 		}
+		// close database connection
+		$this->Flickr->closeDatabase();
 	}
 	
 	private function buildCache()
 	{
-		global $config;
-		$cacheDir = $config['cacheDir'];
-		$sizes = $config['flickrSizes'];
-		$cropSizes = $config['cropSizes'];
-		
-		//$sizes = array("Large", "Medium", "Small", "Thumbnail", "Square");
+		$cacheDir = $this->Flickr->cacheDir;
+		$sizes = $this->Flickr->flickrSizes;
+		$cropSizes = $this->Flickr->cropSizes;
 		
 		// loop through each size and check if a cache file exists
 		foreach( $sizes as $size )
@@ -106,8 +101,8 @@ class Image
 	{
 		$success = true;
 		
-		$this->initializeFlickr();
-		//$sizes = $this->flickrSizes;
+		// make sure we have a phpFlickr object
+		$this->Flickr->initializeFlickr();
 		$sizes = $this->Flickr->phpFlickr->photos_getSizes( $this->id );
 		
 		// make sure the current cache is up to date
