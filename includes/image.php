@@ -10,7 +10,7 @@ class Image
 	private $title = "";
 	private $description = "";
 	private $views = 0;
-	private $imageAvailable = false;
+	public $exists = false;
 	private $cache = array();
 	private $updateInfo = false;
 	
@@ -44,6 +44,7 @@ class Image
 			$this->description = $imageData['description'];
 			$this->views = $imageData['views'];
 			$this->buildCache();
+			$this->exists = true;
 		}
 		elseif( $this->updateInfo == true )
 		{
@@ -65,6 +66,7 @@ class Image
 					// all local images have been successfully created.
 					// create database entry
 					$this->Flickr->Database->RunQuery("insert into images values('$this->id','$this->title','$this->description','1','')");
+					$this->exists = true;
 				}	
 			}
 		}
@@ -108,7 +110,7 @@ class Image
 		// make sure the current cache is up to date
 		$this->buildCache();
 		
-		// loop through each size and dowload file from flickr exists
+		// loop through each size and download file from flickr
 		foreach( $sizes as $size )
 		{
 			$label = trim(str_replace(" ","_", $size['label']));

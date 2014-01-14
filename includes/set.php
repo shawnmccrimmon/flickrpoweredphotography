@@ -5,7 +5,7 @@ require_once("image.php");
 /*
 	Set object Arguments
 	1. the id of the set (defaults to empty string)
-	2. the title of the set, only used if id is blank (defaults to empty string)
+	2. the friendly name of the set, only used if id is blank (defaults to empty string)
 	3. whether or not the images in the set should be retreived. (defaults to true)
 	4. whether or not the set information should be updated from flickr (defaults to false)
 	5. whether or not the images in the set should be updated from flickr (defaults to false)	
@@ -24,8 +24,9 @@ class Set
 	private $updateInfo = false;
 	private $updateImages = false;
 	private $coverImage;
+	private $friendlyName;
 	
-	public function Set( $id = "", $title = "", $getImageArray = true, $updateInfo = false, $updateImages = false )
+	public function Set( $id = "", $friendlyName = "", $getImageArray = true, $updateInfo = false, $updateImages = false )
 	{
 	
 		$this->getImageArray = $getImageArray;
@@ -39,10 +40,10 @@ class Set
 			$this->id = $id;
 			$this->exists = $this->getInfoFromID();
 		}
-		elseif( empty( $title ) == false )
+		elseif( empty( $friendly ) == false )
 		{
-			$this->title = $title;
-			$this->exists = $this->getInfoFromTitle();
+			$this->friendlyName = $friendlyName;
+			$this->exists = $this->getInfoFromFriendlyName();
 		}
 		
 		// should we update the set infomation from flickr?
@@ -74,16 +75,16 @@ class Set
 		return $exists;
 	}
 	
-	public function getInfoFromTitle( $title = "" )
+	public function getInfoFromFriendlyName( $firendlyName = "" )
 	{
-		if( empty( $title ) == false )
+		if( empty( $friendlyName ) == false )
 		{
-			$this->title = $title;
+			$this->friendlyName = $friendlyName;
 		}
 		
 		$this->initializeFlickr();
 		
-		$setData = $this->Flickr->Database->RunQuery("select * from sets where title LIKE '$this->id'", true);
+		$setData = $this->Flickr->Database->RunQuery("select * from sets where friendly LIKE '$this->friendlyName'", true);
 		$exists = $this->processDataFromDatabase( $setData );
 		
 		// close database connection
@@ -108,6 +109,7 @@ class Set
 			$this->description = $setData['description'];
 			$this->coverImage = $setData['cover'];
 			$this->images = $this->imageListToArray( $setData['images'] );
+			$this->friendlyName = $setData['friendly'];
 			$processed = true;
 		}
 		
@@ -123,6 +125,7 @@ class Set
 		$setInfo = $this->Flickr->phpFlickr->photosets_getInfo( $this->id );
 		$this->title = $setInfo['title'];
 		$this->description = $setInfo['description'];
+		$this->friendlyName = strtolower ( preg_replace("/[^A-Za-z0-9]/", "", $setInfo['title'] ) );
 		$coverImage = $setInfo['primary'];
 		$this->imageCount = $setInfo['count_photos'];
 		$this->coverImage = new Image( $coverImage, true, true );
@@ -150,11 +153,11 @@ class Set
 			// add values to database
 			if( $this->exists == false )
 			{
-				$this->Flickr->Database->RunQuery("insert into sets values( '$this->id', '$this->title', '$this->description', '$coverImage', '$ID_List')");
+				$this->Flickr->Database->RunQuery("insert into sets values( '$this->id', '$this->title', '$this->description', '$coverImage', '$ID_List', '$this->friendlyName')");
 			}
 			else
 			{
-				$this->Flickr->Database->RunQuery("update sets set title='$this->title',description='$this->description',cover='$coverImage',images='$ID_List' where id='$this->id'");
+				$this->Flickr->Database->RunQuery("update sets set title='$this->title',description='$this->description',cover='$coverImage',images='$ID_List',friendly='$this->friendlyName' where id='$this->id'");
 			}
 			
 			$this->images = $this->imageListToArray( $ID_List );
@@ -180,6 +183,11 @@ class Set
 
 		return $images;
 	}
+	
+	public function getID()
+	{
+		return $this->id;
+	}
 		
 	public function getTitle()
 	{
@@ -204,6 +212,11 @@ class Set
 	public function getImageCount()
 	{
 		return $this->imageCount;
+	}
+	
+	public function getFriendlyName()
+	{
+		return $this->friendly;
 	}
 	
 }
